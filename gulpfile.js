@@ -27,19 +27,25 @@ gulp.task( 'min', function() {
     .pipe(gulp.dest('build'));
 } );
 
+// Build each libs apart
+gulp.task( 'build-libs', ['clean', 'min'] );
+
+// Build sf2
+gulp.task( 'sf2', ['build-libs'], function(){
+  // Concat all sf2 componant to sf2
+  setTimeout(function(){
+    gulp.src('build/*.js')
+    .pipe(concat('sf2.min.js'))
+    .pipe(gulp.dest('build/'));
+  }, 500);
+} );
+
 
 /////////////////
 // MACRO TASKS //
 /////////////////
 
-
-// Build each libs apart
-gulp.task( 'build-libs', ['clean', 'min'] );
-
-// Build sf2
-gulp.task( 'sf2', function(){
-  // Concat all sf2 componant to sf2
-  gulp.src('build/*.js')
-    .pipe(concat('sf2.min.js'))
-    .pipe(gulp.dest('build/'));
+gulp.task( 'watch', function(){
+  gulp.watch( 'libs/**/*.js', ['sf2'] ); 
+  gulp.watch( 'exemples/**/*.html', ['sf2'] ); 
 } );

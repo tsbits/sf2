@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>DegasJS exemple</title>
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+	<!-- That canvas will be our playground -->
+	<canvas id="playground">
+		Sorry - No canvas support
+	</canvas>
+
+	<!-- Loading jQuery and sf2 -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.js"></script>
+	<script src="../../build/sf2.min.js"></script>
+
+	<script>
+		// Creating some vars
+		var canvas, degas, myPath, myPath2, myPath3;
+
+		// That array contains Degas.Point
+		// Degas.Point are basically objects wth x en y props
+		// These points will be used to define the Degas.Path 
+		var pPoints = [
+			new Degas.Point( 0, -50 ),
+			new Degas.Point( 50, 0 ),
+			new Degas.Point( 0, 50 ),
+			new Degas.Point( -50, 0 )
+		]
+		
+		$(function(){
+			// Get the canvas we will draw on
+			canvas = $('#playground')[0];
+			// Instanciate Degas
+			degas = new Degas(canvas);
+
+
+			// Creating a basic Path
+			myPath = new Degas.Path( pPoints );
+			// Defining the color of the path
+			myPath.stroke = "#FF0000";
+			// Centering the path into the scene
+			myPath.x = window.innerWidth / 4;
+			myPath.y = window.innerHeight / 2;
+			// Positioning the path to the scene
+			degas.addChild( myPath );
+
+
+			// Creating a basic closed Path
+			myPath2 = new Degas.Path( pPoints );
+			myPath2.stroke = "#00FF00";
+			// A path can be closed automaticly
+			myPath2.closed = true;
+			// Positioning the path into the scene
+			myPath2.x = window.innerWidth / 2;
+			myPath2.y = window.innerHeight / 2;
+			// Adding the path to the scene
+			degas.addChild( myPath2 );
+
+
+			// Creating a basic closed Path
+			myPath3 = new Degas.Path( pPoints );
+			myPath3.stroke = "#0000FF";
+			// You can set the stroke with like that
+			myPath3.strokeWidth = 3;
+			myPath3.closed = true;
+			// A path can be smoothed
+			// The smooth factor can be defined by the smoothPointsNumber
+			myPath3.smoothPointsNumber = 50;
+			// Smoothing the path
+			myPath3.smooth();
+			// Positioning the path into the scene
+			myPath3.x = window.innerWidth * 0.75;
+			myPath3.y = window.innerHeight / 2;
+			// Adding the path to the scene
+			degas.addChild( myPath3 );
+
+
+			// Trigger the resize function to resize our canvas
+			resize();
+			// Binding events
+			bindEvents();
+			// Stating a RAF that will animate the cube and render the canvas
+			loop();
+		});
+
+		function bindEvents(){
+			// On resize, resize the canvas
+			$(window).resize(function(){
+				resize();
+			});
+		}
+
+		function resize(){
+			// Resize the width and the height of the canvas
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+		}
+
+		function loop(){
+			requestAnimationFrame( loop ); 
+
+			
+
+			// Render the canvas
+			degas.render();
+		}
+	</script>
+</body>
+</html>

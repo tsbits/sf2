@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>DegasJS exemple</title>
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+	<!-- That canvas will be our playground -->
+	<canvas id="playground">
+		Sorry - No canvas support
+	</canvas>
+
+	<!-- Loading jQuery and sf2 -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.js"></script>
+	<script src="../../build/sf2.min.js"></script>
+
+	<script>
+		// Creating some vars
+		var canvas, degas, circleRadius;
+		
+		$(function(){
+			// Get the canvas we will draw on
+			canvas = $('#playground')[0];
+			// Instanciate Degas
+			degas = new Degas(canvas);
+			// Define the radius of the circle in witch shapes will be distribuate
+			circleRadius = 250;
+
+
+			// Create 500 cube with a random size
+			for( var i = 0; i < 500; i++ ){
+				var cube = new Degas.Cube(15 * Math.random() + 15);
+				// Fill the cube with a random color
+				cube.fill = Montana.randomColor();
+				// Position the shape randomely a circle
+				var angle = Math.random() * Math.PI * 2;
+				cube.x = window.innerWidth * Math.random();
+				cube.y = window.innerHeight * Math.random();
+				cube.rotation = Math.round( Math.random() * 360 );
+				// Adding the cube inside the scene
+				degas.addChild(cube);
+			}
+
+
+			// Create 500 rectangle with a random width and height
+			for( var i = 0; i < 500; i++ ){
+				var rectangle = new Degas.Rectangle(10 * Math.random() + 10, 50 * Math.random() + 10);
+				rectangle.fill = Montana.randomColor();
+				var angle = Math.random() * Math.PI * 2;
+				rectangle.x = window.innerWidth * Math.random();
+				rectangle.y = window.innerHeight * Math.random();
+				rectangle.rotation = Math.round( Math.random() * 360 );
+				degas.addChild(rectangle);
+			}
+
+
+			// Create 500 circle with a random radius
+			for( var i = 0; i < 500; i++ ){
+				var circle = new Degas.Circle(5 * Math.random() + 5);
+				circle.fill = Montana.randomColor();
+				var angle = Math.random() * Math.PI * 2;
+				circle.x = window.innerWidth * Math.random();
+				circle.y = window.innerHeight * Math.random();
+				circle.rotation = Math.round( Math.random() * 360 );
+				degas.addChild(circle);
+			}
+
+
+			// Create 500 regularPolygon with a random radius and 5 to 10 sides
+			for( var i = 0; i < 500; i++ ){
+				var regularPolygon = new Degas.RegularPolygon(10 * Math.random() + 10, Math.round( Math.random() ) * 10 + 10);
+				regularPolygon.fill = Montana.randomColor();
+				var angle = Math.random() * Math.PI * 2;
+				regularPolygon.x = window.innerWidth * Math.random();
+				regularPolygon.y = window.innerHeight * Math.random();
+				regularPolygon.rotation = Math.round( Math.random() * 360 );
+				degas.addChild(regularPolygon);
+			}
+
+
+			// Trigger the resize function to resize our canvas
+			resize();
+			// Binding events
+			bindEvents();
+			// Stating a RAF that will animate the cube and render the canvas
+			loop();
+		});
+
+		function bindEvents(){
+			// On resize, resize the canvas
+			$(window).resize(function(){
+				resize();
+			});
+		}
+
+		function resize(){
+			// Resize the width and the height of the canvas
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+		}
+
+		function loop(){
+			requestAnimationFrame( loop ); 
+
+			// Rotate each scene children
+			for( var i = 0; i < degas.children.length; i++ ){
+				degas.children[i].rotation += 2;
+			}
+
+			// Render the canvas
+			degas.render();
+		}
+	</script>
+</body>
+</html>

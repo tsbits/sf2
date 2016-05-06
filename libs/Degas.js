@@ -13,6 +13,7 @@ var Degas = function( canvas ){
 	this.mouseStyle = true;
 	this.mouse = { 'x': undefined, 'y': undefined }
 	this.scaleRatio = 1;
+	this.currentFrame = 0; 
 }
 
 Degas.prototype.enableMouse = function(){
@@ -20,13 +21,8 @@ Degas.prototype.enableMouse = function(){
 	this.mouseEvent = true;
 
 	this.canvas.addEventListener('mousemove', function(e){
-		//self.ctx.scale(self.scaleRatio,self.scaleRatio);
-		// var rect = self.canvas.getBoundingClientRect();
-  		//self.mouse.x = (e.clientX - rect.left);
-  		//self.mouse.y = (e.clientY - rect.top);
-
         self.mouse.x = e.offsetX;
-      	self.mouse.y = e.offsetY;
+      	self.mouse.y = e.offsetY; 
 	}, false);
 
 	this.canvas.addEventListener('click', function(e){
@@ -121,13 +117,13 @@ Degas.prototype.bringBackward = function( child ){
 		this.swapChildIndex( this.getChildIndex( child ), this.getChildIndex( child )-1 );
 	}
 }
-
+ 
 Degas.prototype.sendToBack = function( child ){
 	while( this.getChildIndex( child ) > 0 ){
 		this.swapChildIndex( this.getChildIndex( child ), this.getChildIndex( child )-1 );
 	}
 }
-
+ 
 Degas.prototype.swapChildIndex = function( childIndex, targetChildIndex ){
 	this.children.splice( targetChildIndex, 0, this.children.splice( childIndex, 1 )[0] );
 	return this;
@@ -150,6 +146,7 @@ Degas.prototype.empty = function(){
 ///////////////
 
 Degas.prototype.render = function(){
+	this.currentFrame++;
 	if( this.fullClear ){
 		this.ctx.clearRect ( 0 , 0 , window.innerWidth, window.innerHeight );
 	}
@@ -389,7 +386,7 @@ Degas.prototype.mouseoverImage = function( obj ){
 Degas.prototype.mouseoverSprite = function( obj ){
 	if( this.mouse.x > obj.x - obj.width/2 && this.mouse.x < obj.x + obj.width/2 ){
 		if( this.mouse.y > obj.y - obj.height/2 && this.mouse.y < obj.y + obj.height/2 ){
-			return true;
+			return true; 
 		}
 		else{
 			return false;

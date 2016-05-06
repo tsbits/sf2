@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>DegasJS exemple</title>
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+	<!-- That canvas will be our playground -->
+	<canvas id="playground">
+		Sorry - No canvas support
+	</canvas>
+
+	<!-- Loading jQuery and sf2 -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.js"></script>
+	<script src="../../build/sf2.min.js"></script>
+
+	<script>
+		// Creating some vars
+		var canvas, degas, cube;
+		
+		$(function(){
+			// Get the canvas we will draw on
+			canvas = $('#playground')[0];
+			// Instanciate Degas
+			degas = new Degas(canvas);
+
+			// Create a cube with sides of 50px
+			cube = new Degas.Cube(50);
+			// That cube will be draw width a black color
+			cube.fill = '#000000';
+			// Centering the cube on the canvas
+			cube.x = window.innerWidth / 2;
+			cube.y = window.innerHeight / 2;
+			// Adding the canvas inside the scene
+			degas.addChild(cube);
+
+			// Trigger the resize function to resize our canvas
+			resize();
+			// Binding events
+			bindEvents();
+			// Stating a RAF that will animate the cube and render the canvas
+			loop();
+		});
+
+		function bindEvents(){
+			// On resize, resize the canvas
+			$(window).resize(function(){
+				resize();
+			});
+		}
+
+		function resize(){
+			// Resize the width and the height of the canvas
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+		}
+
+		function loop(){
+			requestAnimationFrame( loop ); 
+
+			// Rotate the cube
+			cube.rotation += 2;
+			// Scale the cube accounding currentFrame
+			cube.scaleX = cube.scaleY = Math.cos( degas.currentFrame/100 ) * 2;
+
+			// Render the canvas
+			degas.render();
+		}
+	</script>
+</body>
+</html>

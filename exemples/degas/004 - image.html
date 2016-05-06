@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>DegasJS exemple</title>
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+	<!-- That canvas will be our playground -->
+	<canvas id="playground">
+		Sorry - No canvas support
+	</canvas>
+
+	<!-- Loading jQuery and sf2 -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.js"></script>
+	<script src="../../build/sf2.min.js"></script>
+
+	<script>
+		// Creating some vars
+		var canvas, degas, myImage;
+
+		// That array contains Degas.Point
+		// Degas.Point are basically objects wth x en y props
+		// These points will be used to define the Degas.Path 
+		var pPoints = [
+			new Degas.Point( 0, -50 ),
+			new Degas.Point( 50, 0 ),
+			new Degas.Point( 0, 50 ),
+			new Degas.Point( -50, 0 )
+		]
+		
+		$(function(){
+			// Get the canvas we will draw on
+			canvas = $('#playground')[0];
+			// Instanciate Degas
+			degas = new Degas(canvas);
+
+
+			// Create a Degas.Image object
+			myImage = new Degas.Image('img/link.png', function(){
+				console.log('Image loaded');
+
+				//Center the image into the scene
+				myImage.x = window.innerWidth / 2;
+				myImage.y = window.innerHeight / 2;
+			});
+
+			// Adding the Image to the scene
+			degas.addChild( myImage );
+
+
+			// Trigger the resize function to resize our canvas
+			resize();
+			// Binding events
+			bindEvents();
+			// Stating a RAF that will animate the cube and render the canvas
+			loop();
+		});
+
+		function bindEvents(){
+			// On resize, resize the canvas
+			$(window).resize(function(){
+				resize();
+			});
+		}
+
+		function resize(){
+			// Resize the width and the height of the canvas
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+		}
+
+		function loop(){
+			requestAnimationFrame( loop ); 
+
+			// Rotating the Image
+			myImage.rotation += 2;
+			// Scale the Image accounding currentFrame
+			myImage.scaleX = myImage.scaleY = Math.cos( degas.currentFrame/100 ) * 2;
+
+
+			// Render the canvas
+			degas.render();
+		}
+	</script>
+</body>
+</html>
