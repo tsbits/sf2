@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Mondrian - Exemple</title>
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+	<!-- That canvas will be our playground -->
+	<canvas id="playground">
+		Sorry - No canvas support
+	</canvas>
+
+	<!-- Loading jQuery and sf2 -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.js"></script>
+	<script src="../../build/sf2.min.js"></script>
+
+	<script>
+		// Creating some vars
+		var canvas, degas, map, mondrian, debug, hero, enemies, currentLevel;
+		var input = {
+			'left': false,
+			'top': false,
+			'right': false,
+			'bottom': false,
+		}
+		
+		$(function(){
+			//debug = true;
+			currentLevel = 0;
+
+			// Get the canvas we will draw on
+			canvas = $('#playground')[0];
+			// Instanciate Degas
+			degas = new Degas(canvas);
+
+			
+			loadLevel(currentLevel);
+
+			// Trigger the resize function to resize our canvas
+			resize();
+			// Binding events
+			bindEvents();
+			// Stating a RAF that will animate the cube and render the canvas
+			loop();
+		});
+
+		function bindEvents(){
+			// On resize, resize the canvas
+			$(window).resize(function(){
+				resize();
+			});
+
+			$(window).bind( 'keydown', function(e){
+				if( e.keyCode == 37 ){
+					input.left = true;
+				}
+				if( e.keyCode == 38 ){
+					input.top = true;
+				}
+				if( e.keyCode == 39 ){
+					input.right = true;
+				}
+				if( e.keyCode == 40 ){
+					input.bottom = true;
+				}
+			});
+
+			$(window).bind( 'keyup', function(e){
+				if( e.keyCode == 37 ){
+					input.left = false;
+				}
+				if( e.keyCode == 38 ){
+					input.top = false;
+				}
+				if( e.keyCode == 39 ){
+					input.right = false;
+				}
+				if( e.keyCode == 40 ){
+					input.bottom = false;
+				}
+			});
+		}
+
+		function resize(){
+			// Resize the width and the height of the canvas
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+		}
+
+		function createMap(){
+			map = new Degas.Group();
+			// Drawing the map using mondrian datas
+			for( var i = 0; i < mondrian.mapHeight; i++ ){
+				for( var j = 0; j < mondrian.mapWidth; j++ ){
+					var tile = new Degas.Cube( mondrian.tileWidth );
+					tile.x = j * mondrian.tileWidth;
+					tile.y = i * mondrian.tileHeight;
+					
+					if(mondrian.map[i][j] == 0){
+						tile.fill = "#000000"
+					}
+					else if(mondrian.map[i][j] == 1){
+						tile.fill = "#FFFFFF";
+					}
+					else if(mondrian.map[i][j] == 2){
+						tile.fill = "#FF0000";
+					}
+
+					if( debug ){
+						tile.stroke = "#ff0000";
+					}
+					degas.addChild( tile );
+					map.add( tile );
+				}
+			}
+
+			map.x = window.innerWidth / 2 - ( mondrian.mapWidth * mondrian.tileWidth / 2 );
+			map.y = window.innerHeight / 2 - ( mondrian.mapHeight * mondrian.tileHeight / 2 );
+		}
+
+		function createHero(){
+			hero = new Degas.Cube( 16 );
+			hero.fill = "#FF0000";
+			//mondrian.setHeroSize(10, 10);
+			degas.addChild( hero );
+			map.add( hero );
+		}
+
+		function createEnemies(){
+			enemies = [];
+			for( var i = 0; i < mondrian.enemies.length; i++ ){
+				enemy = new Degas.Cube( 16 );
+				enemy.fill = "#FFD045";
+				//mondrian.setHeroSize(10, 10);
+				degas.addChild( enemy );
+				map.add( enemy );
+				enemies.push(enemy);
+			}
+		}
+
+		function loop(){
+			requestAnimationFrame( loop ); 	
+
+			if( hero ){
+				if( input.left ){
+					mondrian.moveHero( -1, 0 );
+				}
+				if( input.top ){
+					mondrian.moveHero( 0, -1 );
+				}
+				if( input.right ){
+					mondrian.moveHero( 1, 0 );
+				}
+				if( input.bottom ){
+					mondrian.moveHero( 0, 1 );
+				}
+
+				hero.x = mondrian.hero.x * mondrian.tileWidth;
+				hero.y = mondrian.hero.y * mondrian.tileHeight;
+			}
+
+			if( enemies != undefined && enemies.length > 0 ){
+				mondrian.moveEnemies();
+
+				for( var i = 0; i < enemies.length; i++ ){
+					enemies[i].x = mondrian.enemies[i].x * mondrian.tileWidth;
+					enemies[i].y = mondrian.enemies[i].y * mondrian.tileHeight;
+				}
+			}
+
+			if( currentLevel == 0 && Math.round( mondrian.hero.x ) == mondrian.map[0].length - 2 && Math.round( mondrian.hero.y ) == mondrian.map.length - 2 ){
+				loadLevel(1, mondrian.map[0].length - 3, mondrian.map.length - 2);
+			}
+			else if( currentLevel == 1 && Math.round( mondrian.hero.x ) == mondrian.map[0].length - 2 && Math.round( mondrian.hero.y ) == mondrian.map.length - 2 ){
+				loadLevel(0, mondrian.map[0].length - 3, mondrian.map.length - 2);
+			}
+
+			// Render the canvas
+			degas.render();
+		}
+
+		function clearDegas(){
+			degas = new Degas(canvas);
+			enemies = [];
+		}
+
+		function loadLevel( level, heroX, heroY ){
+			clearDegas();
+			currentLevel = level;
+			if( level == 0 ){
+				// Creating the tilemap world
+				mondrian = new Mondrian( 30, 10, 20, 20 );
+				mondrian.makeWall( 4, 1, 5, true );
+				mondrian.makeWall( 1, 7, 5 );
+
+				if( heroX != undefined && heroY != undefined ){
+					mondrian.setHeroStart( heroX, heroY );
+				}
+				else{
+					mondrian.setHeroStart( 1, 1 );
+				}
+
+				mondrian.addEnemy( 5, 5, 0.025 );
+				mondrian.addEnemy( 3, 5, 0.025 );
+				mondrian.addEnemy( 3, 2, 0.025 );
+				mondrian.addEnemy( 1, 8, 0.025 );
+			}
+			else if( level == 1 ){
+				// Creating the tilemap world
+				mondrian = new Mondrian( 30, 10, 20, 20 );
+				mondrian.makeWall( 4, 3, 5 );
+				mondrian.makeWall( 3, 5, 4, true );
+				
+				if( heroX != undefined && heroY != undefined ){
+					mondrian.setHeroStart( heroX, heroY );
+				}
+				else{
+					mondrian.setHeroStart( 1, 1 );
+				}
+
+				mondrian.addEnemy( 5, 5, 0.025 );
+			}
+
+			// Create the map and the hero
+			setTimeout(function(){
+				createMap();
+				createEnemies();
+				createHero();
+			}, 500);
+		}
+	</script>
+</body>
+</html>

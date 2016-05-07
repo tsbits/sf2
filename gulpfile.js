@@ -37,7 +37,7 @@ gulp.task( 'sf2', ['build-libs'], function(){
     gulp.src('build/*.js')
     .pipe(concat('sf2.min.js'))
     .pipe(gulp.dest('build/'));
-  }, 500);
+  }, 1500);
 } );
 
 
