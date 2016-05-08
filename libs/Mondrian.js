@@ -6,6 +6,7 @@ var Mondrian = function( mw, mh, tw, th, map ){
 	this.map = map || [];
 	this.hero = { x: 10, y: 5, speed: 0.1 };
 	this.enemies = [];
+	this.items = [];
 
 	this.buildMap();
 } 
@@ -110,6 +111,10 @@ Mondrian.prototype.setHeroSize = function( w, h ){
 
 Mondrian.prototype.addEnemy = function( x, y, speed ){
 	this.enemies.push( { x: x, y: y, speed: speed, dir: Math.round( Math.random() * 3 ) } );
+}
+
+Mondrian.prototype.addItem = function( x, y, name ){
+	this.items.push( { x: x, y: y, name: name } );
 }
 
 Mondrian.prototype.isTileWalkable = function( x, y ){

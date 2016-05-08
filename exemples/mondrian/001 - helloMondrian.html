@@ -17,7 +17,7 @@
 
 	<script>
 		// Creating some vars
-		var canvas, degas, map, mondrian, debug, hero, enemies, currentLevel;
+		var canvas, degas, map, mondrian, debug, hero, enemies, items, currentLevel;
 		var input = {
 			'left': false,
 			'top': false,
@@ -130,12 +130,24 @@
 		function createEnemies(){
 			enemies = [];
 			for( var i = 0; i < mondrian.enemies.length; i++ ){
-				enemy = new Degas.Cube( 16 );
+				var enemy = new Degas.Cube( 16 );
 				enemy.fill = "#FFD045";
-				//mondrian.setHeroSize(10, 10);
 				degas.addChild( enemy );
 				map.add( enemy );
-				enemies.push(enemy);
+				enemies.push( enemy );
+			}
+		}
+
+		function createItems(){
+			items = [];
+			for( var i = 0; i < mondrian.items.length; i++ ){
+				var item = new Degas.Cube( 8 );
+				item.fill = "#0000FF";
+				item.x = mondrian.items[i].x * mondrian.tileWidth;
+				item.y = mondrian.items[i].y * mondrian.tileHeight;
+				degas.addChild( item );
+				map.add( item );
+				items.push( item );
 			}
 		}
 
@@ -169,6 +181,12 @@
 				}
 			}
 
+			if( items != undefined && items.length > 0 ){
+				for( var i = 0; i < items.length; i++ ){
+					items[i].rotation = 360 * Math.cos( degas.currentFrame/50 );
+				}
+			}
+
 			if( currentLevel == 0 && Math.round( mondrian.hero.x ) == mondrian.map[0].length - 2 && Math.round( mondrian.hero.y ) == mondrian.map.length - 2 ){
 				loadLevel(1, mondrian.map[0].length - 3, mondrian.map.length - 2);
 			}
@@ -183,6 +201,7 @@
 		function clearDegas(){
 			degas = new Degas(canvas);
 			enemies = [];
+			items = [];
 		}
 
 		function loadLevel( level, heroX, heroY ){
@@ -205,6 +224,9 @@
 				mondrian.addEnemy( 3, 5, 0.025 );
 				mondrian.addEnemy( 3, 2, 0.025 );
 				mondrian.addEnemy( 1, 8, 0.025 );
+
+				mondrian.addItem( 15, 1, 'blue thing' );
+				mondrian.addItem( 10, 7, 'blue thing' );
 			}
 			else if( level == 1 ){
 				// Creating the tilemap world
@@ -220,11 +242,15 @@
 				}
 
 				mondrian.addEnemy( 5, 5, 0.025 );
+
+				mondrian.addItem( 15, 1, 'blue thing' );
+				mondrian.addItem( 10, 7, 'blue thing' );
 			}
 
 			// Create the map and the hero
 			setTimeout(function(){
 				createMap();
+				createItems();
 				createEnemies();
 				createHero();
 			}, 500);
