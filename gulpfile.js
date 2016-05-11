@@ -9,7 +9,7 @@ var del = require( 'del' );
 // NANO TASKS //
 ////////////////
 
-
+  
 // Deleting all dist content
 gulp.task( 'clean', function() {
   return del.sync( 'build' );

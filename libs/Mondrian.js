@@ -4,9 +4,13 @@ var Mondrian = function( mw, mh, tw, th, map ){
 	this.tileWidth = tw || 25;
 	this.tileHeight = th || 25;
 	this.map = map || [];
-	this.hero = { x: 10, y: 5, speed: 0.1 };
+	this.hero = { x: 10, y: 5, speed: 0.2 };
 	this.enemies = [];
 	this.items = [];
+	this.doors = [];
+	this.gameEvents = {
+	  collisions : new signals.Signal()
+	};
 
 	this.buildMap();
 } 
@@ -52,6 +56,34 @@ Mondrian.prototype.makeWall = function( x, y, length, vertical ){
 	else{
 		for( var i = 0; i < length; i++ ){
 			this.map[y][x+i] = 0;
+		}
+	}
+}
+
+Mondrian.prototype.render = function(){
+	this.moveEnemies();
+
+	// Checking collision hero <--> items
+	for( var i = 0; i < this.items.length; i++ ){
+		var item = this.items[i];
+		if( Math.round(this.hero.x) == item.x && Math.round(this.hero.y) == item.y ){
+			this.gameEvents.collisions.dispatch(item); 
+		}
+	}
+
+	// Checking collision hero <--> enemies
+	for( var i = 0; i < this.enemies.length; i++ ){
+		var enemy = this.enemies[i];
+		if( Math.round(this.hero.x) == Math.round(enemy.x) && Math.round(this.hero.y) == Math.round(enemy.y) ){
+			this.gameEvents.collisions.dispatch(enemy); 
+		}
+	}
+
+	// Checking collision hero <--> doors
+	for( var i = 0; i < this.doors.length; i++ ){
+		var door = this.doors[i];
+		if( Math.round(this.hero.x) == door.x && Math.round(this.hero.y) == door.y ){
+			this.gameEvents.collisions.dispatch(door); 
 		}
 	}
 }
@@ -110,11 +142,15 @@ Mondrian.prototype.setHeroSize = function( w, h ){
 }
 
 Mondrian.prototype.addEnemy = function( x, y, speed ){
-	this.enemies.push( { x: x, y: y, speed: speed, dir: Math.round( Math.random() * 3 ) } );
+	this.enemies.push( { x: x, y: y, speed: speed, dir: Math.round( Math.random() * 3 ), type: 'enemy' } );
 }
 
 Mondrian.prototype.addItem = function( x, y, name ){
-	this.items.push( { x: x, y: y, name: name } );
+	this.items.push( { x: x, y: y, name: name, type: 'item' } );
+}
+
+Mondrian.prototype.addDoor = function( x, y, targetLevel ){
+	this.doors.push( { x: x, y: y, targetLevel: targetLevel, type: 'door' } );
 }
 
 Mondrian.prototype.isTileWalkable = function( x, y ){
