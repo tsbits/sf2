@@ -4,7 +4,7 @@ var Mondrian = function( mw, mh, tw, th, map ){
 	this.tileWidth = tw || 25;
 	this.tileHeight = th || 25;
 	this.map = map || [];
-	this.hero = { x: 10, y: 5, speed: 0.2 };
+	this.hero = { x: 10, y: 5, speed: 0.2, startX : 1, startY: 1, invicible: false, bag: [] };
 	this.enemies = [];
 	this.items = [];
 	this.doors = [];
@@ -67,6 +67,7 @@ Mondrian.prototype.render = function(){
 	for( var i = 0; i < this.items.length; i++ ){
 		var item = this.items[i];
 		if( Math.round(this.hero.x) == item.x && Math.round(this.hero.y) == item.y ){
+			this.pickUpItem(i);
 			this.gameEvents.collisions.dispatch(item); 
 		}
 	}
@@ -88,18 +89,25 @@ Mondrian.prototype.render = function(){
 	}
 }
 
-Mondrian.prototype.moveHero = function( dirX, dirY ){
+Mondrian.prototype.moveHero = function( dirX, dirY, modifier ){
+	var heroSpeedRatio = 1;
+
+	if( modifier == 'walk' ){
+		heroSpeedRatio = 0.25
+	}
+
+
 	if( dirX < 0 && this.map[Math.round(this.hero.y)][Math.ceil(this.hero.x) - 1] != 0 ){
-		this.hero.x += dirX * this.hero.speed;
+		this.hero.x += dirX * this.hero.speed * heroSpeedRatio;
 	}
 	if( dirX > 0 && this.map[Math.round(this.hero.y)][Math.floor(this.hero.x) + 1] != 0 ){
-		this.hero.x += dirX * this.hero.speed;
+		this.hero.x += dirX * this.hero.speed * heroSpeedRatio;
 	}
 	if( dirY < 0 && this.map[Math.ceil(this.hero.y) - 1][Math.round(this.hero.x)] != 0 ){
-		this.hero.y += dirY * this.hero.speed;
+		this.hero.y += dirY * this.hero.speed * heroSpeedRatio;
 	}
 	if( dirY > 0 && this.map[Math.floor(this.hero.y) + 1][Math.round(this.hero.x)] != 0 ){
-		this.hero.y += dirY * this.hero.speed;
+		this.hero.y += dirY * this.hero.speed * heroSpeedRatio;
 	}
 }
 
@@ -133,7 +141,9 @@ Mondrian.prototype.moveEnemies = function(){
 
 Mondrian.prototype.setHeroStart = function( x, y ){
 	this.hero.x = x;
+	this.hero.startX = x;
 	this.hero.y = y;
+	this.hero.startY = y;
 }
 
 Mondrian.prototype.setHeroSize = function( w, h ){
@@ -141,16 +151,25 @@ Mondrian.prototype.setHeroSize = function( w, h ){
 	this.hero.height = h;
 }
 
+Mondrian.prototype.resetHeroPos = function(){
+	this.hero.x = this.hero.startX;
+	this.hero.y = this.hero.startY;
+}
+
 Mondrian.prototype.addEnemy = function( x, y, speed ){
 	this.enemies.push( { x: x, y: y, speed: speed, dir: Math.round( Math.random() * 3 ), type: 'enemy' } );
 }
 
 Mondrian.prototype.addItem = function( x, y, name ){
-	this.items.push( { x: x, y: y, name: name, type: 'item' } );
+	this.items.push( { x: x, y: y, name: name, type: 'item', id: this.items.length } );
 }
 
 Mondrian.prototype.addDoor = function( x, y, targetLevel ){
 	this.doors.push( { x: x, y: y, targetLevel: targetLevel, type: 'door' } );
+}
+
+Mondrian.prototype.pickUpItem = function( itemIndex ){
+	this.hero.bag.push( this.items.splice( itemIndex, 1 )[0] );
 }
 
 Mondrian.prototype.isTileWalkable = function( x, y ){

@@ -19,15 +19,17 @@
 
 	<script> 
 		// Creating some vars 
-		var canvas, degas, map, mondrian, debug, hero, enemies, items, doors, currentLevel;
+		var canvas, degas, map, mondrian, debug, hero, enemies, items, doors, currentLevel, canPlay;
 		var input = {
 			'left': false,
 			'top': false,
 			'right': false,
 			'bottom': false,
+			'shift': false
 		}
 		
 		$(function(){
+			canPlay = false;
 			//debug = true;
 			currentLevel = 0;
 
@@ -66,6 +68,9 @@
 				if( e.keyCode == 40 ){
 					input.bottom = true;
 				}
+				if( e.keyCode == 16 ){
+					input.shift = true;
+				}
 			});
 
 			$(window).bind( 'keyup', function(e){
@@ -80,6 +85,9 @@
 				}
 				if( e.keyCode == 40 ){
 					input.bottom = false;
+				}
+				if( e.keyCode == 16 ){
+					input.shift = false;
 				}
 			});
 		}
@@ -172,30 +180,43 @@
 
 		function onCollision(params){
 			console.log(params.type);
+
+			if( params.type == 'door' ){
+				loadLevel( params.targetLevel );
+			}
+			else if( params.type == 'enemy' ){
+				if( !mondrian.hero.invicible ){
+					mondrian.resetHeroPos();
+				}
+			}
+			else if( params.type == 'item' ){
+				degas.removeChild( items[params.id] );
+				//items.splice(params.id, 1);
+			}
 		}
 
 		function loop(){
 			requestAnimationFrame( loop ); 	
 
-			if( hero ){
+			if( hero && canPlay ){
 				if( input.left ){
-					mondrian.moveHero( -1, 0 );
+					mondrian.moveHero( -1, 0, (input.shift)?'walk':'run' );
 				}
 				if( input.top ){
-					mondrian.moveHero( 0, -1 );
+					mondrian.moveHero( 0, -1, (input.shift)?'walk':'run' );
 				}
 				if( input.right ){
-					mondrian.moveHero( 1, 0 );
+					mondrian.moveHero( 1, 0, (input.shift)?'walk':'run' );
 				}
 				if( input.bottom ){
-					mondrian.moveHero( 0, 1 );
+					mondrian.moveHero( 0, 1, (input.shift)?'walk':'run' );
 				}
 
 				hero.x = mondrian.hero.x * mondrian.tileWidth;
 				hero.y = mondrian.hero.y * mondrian.tileHeight;
 			}
 
-			if( enemies != undefined && enemies.length > 0 ){
+			if( enemies != undefined && enemies.length > 0 && canPlay ){
 				mondrian.render();
 
 				for( var i = 0; i < enemies.length; i++ ){
@@ -204,7 +225,7 @@
 				}
 			}
 
-			if( items != undefined && items.length > 0 ){
+			if( items != undefined && items.length > 0 && canPlay ){
 				for( var i = 0; i < items.length; i++ ){
 					items[i].rotation = 360 * Math.cos( degas.currentFrame/50 );
 				}
@@ -228,6 +249,7 @@
 		}
 
 		function loadLevel( level, heroX, heroY ){
+			canPlay = false;
 			clearDegas();
 			currentLevel = level;
 			if( level == 0 ){
@@ -282,6 +304,7 @@
 				createEnemies();
 				createHero();
 				bindGameEvents();
+				canPlay = true;
 			}, 500);
 		}
 	</script>
