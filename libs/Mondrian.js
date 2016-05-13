@@ -4,12 +4,16 @@ var Mondrian = function( mw, mh, tw, th, map ){
 	this.tileWidth = tw || 25;
 	this.tileHeight = th || 25;
 	this.map = map || [];
-	this.hero = { x: 10, y: 5, speed: 0.2, startX : 1, startY: 1, invicible: false, bag: [] };
+	this.hero = { x: 10, y: 5, speed: 0.2, startX : 1, startY: 1, invicible: false, bag: [], hp: 100, maxHp: 100, respiteDuration: 500 };
 	this.enemies = [];
 	this.items = [];
 	this.doors = [];
 	this.gameEvents = {
-	  collisions : new signals.Signal()
+	  collisions: new signals.Signal(),
+	  item: new signals.Signal(),
+	  door: new signals.Signal(),
+	  heroHitted: new signals.Signal(),
+	  heroDead: new signals.Signal()
 	};
 
 	this.buildMap();
@@ -32,6 +36,7 @@ Mondrian.prototype.buildMap = function( random ){
 	}
 
 	this.makeBorder();
+	this.gameEvents.collisions.add(this.onCollision); 
 }
 
 Mondrian.prototype.makeBorder = function(){
@@ -47,19 +52,6 @@ Mondrian.prototype.makeBorder = function(){
 	}
 }
 
-Mondrian.prototype.makeWall = function( x, y, length, vertical ){
-	if( vertical ){
-		for( var i = 0; i < length; i++ ){
-			this.map[y+i][x] = 0;
-		}
-	}
-	else{
-		for( var i = 0; i < length; i++ ){
-			this.map[y][x+i] = 0;
-		}
-	}
-}
-
 Mondrian.prototype.render = function(){
 	this.moveEnemies();
 
@@ -68,7 +60,7 @@ Mondrian.prototype.render = function(){
 		var item = this.items[i];
 		if( Math.round(this.hero.x) == item.x && Math.round(this.hero.y) == item.y ){
 			this.pickUpItem(i);
-			this.gameEvents.collisions.dispatch(item); 
+			this.gameEvents.collisions.dispatch(this, item); 
 		}
 	}
 
@@ -76,7 +68,7 @@ Mondrian.prototype.render = function(){
 	for( var i = 0; i < this.enemies.length; i++ ){
 		var enemy = this.enemies[i];
 		if( Math.round(this.hero.x) == Math.round(enemy.x) && Math.round(this.hero.y) == Math.round(enemy.y) ){
-			this.gameEvents.collisions.dispatch(enemy); 
+			this.gameEvents.collisions.dispatch(this, enemy); 
 		}
 	}
 
@@ -84,8 +76,40 @@ Mondrian.prototype.render = function(){
 	for( var i = 0; i < this.doors.length; i++ ){
 		var door = this.doors[i];
 		if( Math.round(this.hero.x) == door.x && Math.round(this.hero.y) == door.y ){
-			this.gameEvents.collisions.dispatch(door); 
+			this.gameEvents.collisions.dispatch(this, door); 
 		}
+	}
+}
+
+
+Mondrian.prototype.onCollision = function(ctx, collidedItem){
+	var self = ctx;
+
+	if( collidedItem.type == 'door' ){
+		self.gameEvents.door.dispatch(collidedItem);
+	}
+	else if( collidedItem.type == 'enemy' ){
+		if( !self.hero.invicible ){
+			// Reduice hero life
+			self.hero.hp -= collidedItem.atk;
+
+			if( self.hero.hp <= 0 ){
+				self.gameEvents.heroDead.dispatch(self.hero);
+			}
+			else{
+				self.gameEvents.heroHitted.dispatch(self.hero);
+				// Set hero invicible for a while
+				self.hero.invicible = true;
+				setTimeout(function(){
+					self.hero.invicible = false;
+				}, self.hero.respiteDuration);
+			}
+			
+			//mondrian.resetHeroPos();
+		}
+	}
+	else if( collidedItem.type == 'item' ){
+		self.gameEvents.item.dispatch(collidedItem);
 	}
 }
 
@@ -156,8 +180,8 @@ Mondrian.prototype.resetHeroPos = function(){
 	this.hero.y = this.hero.startY;
 }
 
-Mondrian.prototype.addEnemy = function( x, y, speed ){
-	this.enemies.push( { x: x, y: y, speed: speed, dir: Math.round( Math.random() * 3 ), type: 'enemy' } );
+Mondrian.prototype.addEnemy = function( x, y, speed, atk, hp ){
+	this.enemies.push( { x: x, y: y, speed: speed, dir: Math.round( Math.random() * 3 ), type: 'enemy', atk: atk||1, hp: hp||10 } );
 }
 
 Mondrian.prototype.addItem = function( x, y, name ){
@@ -166,6 +190,19 @@ Mondrian.prototype.addItem = function( x, y, name ){
 
 Mondrian.prototype.addDoor = function( x, y, targetLevel ){
 	this.doors.push( { x: x, y: y, targetLevel: targetLevel, type: 'door' } );
+}
+
+Mondrian.prototype.addWall = function( x, y, length, vertical ){
+	if( vertical ){
+		for( var i = 0; i < length; i++ ){
+			this.map[y+i][x] = 0;
+		}
+	}
+	else{
+		for( var i = 0; i < length; i++ ){
+			this.map[y][x+i] = 0;
+		}
+	}
 }
 
 Mondrian.prototype.pickUpItem = function( itemIndex ){

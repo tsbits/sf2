@@ -103,25 +103,24 @@
 			// Drawing the map using mondrian datas
 			for( var i = 0; i < mondrian.mapHeight; i++ ){
 				for( var j = 0; j < mondrian.mapWidth; j++ ){
-					var tile = new Degas.Cube( mondrian.tileWidth );
-					tile.x = j * mondrian.tileWidth;
-					tile.y = i * mondrian.tileHeight;
-					
-					if(mondrian.map[i][j] == 0){
-						tile.fill = "#000000"
-					}
-					else if(mondrian.map[i][j] == 1){
-						tile.fill = "#FFFFFF";
-					}
-					else if(mondrian.map[i][j] == 2){
-						tile.fill = "#FF0000";
-					}
+					if( mondrian.map[i][j] != 1 ){
+						var tile = new Degas.Cube( mondrian.tileWidth );
+						tile.x = j * mondrian.tileWidth;
+						tile.y = i * mondrian.tileHeight;
+						
+						if(mondrian.map[i][j] == 0){
+							tile.fill = "#000000"
+						}
+						else if(mondrian.map[i][j] == 2){
+							tile.fill = "#FF0000";
+						}
 
-					if( debug ){
-						tile.stroke = "#ff0000";
+						if( debug ){
+							tile.stroke = "#ff0000";
+						}
+						degas.addChild( tile );
+						map.add( tile );
 					}
-					degas.addChild( tile );
-					map.add( tile );
 				}
 			}
 
@@ -175,24 +174,26 @@
 		}
 
 		function bindGameEvents(){
-			mondrian.gameEvents.collisions.add(onCollision); 
+			mondrian.gameEvents.item.add(onItem); 
+			mondrian.gameEvents.door.add(onDoor); 
+			mondrian.gameEvents.heroHitted.add(onHeroHitted); 
+			mondrian.gameEvents.heroDead.add(onHeroDead); 
 		}
 
-		function onCollision(params){
-			console.log(params.type);
+		function onItem( item ){
+			degas.removeChild( items[item.id] );
+		}
 
-			if( params.type == 'door' ){
-				loadLevel( params.targetLevel );
-			}
-			else if( params.type == 'enemy' ){
-				if( !mondrian.hero.invicible ){
-					mondrian.resetHeroPos();
-				}
-			}
-			else if( params.type == 'item' ){
-				degas.removeChild( items[params.id] );
-				//items.splice(params.id, 1);
-			}
+		function onDoor( door ){
+			loadLevel( door.targetLevel );
+		}
+
+		function onHeroHitted( hero ){
+			console.log('hero hitted');
+		}
+
+		function onHeroDead( hero ){
+			console.log('hero dead');
 		}
 
 		function loop(){
@@ -231,13 +232,6 @@
 				}
 			}
 
-			// if( currentLevel == 0 && Math.round( mondrian.hero.x ) == mondrian.map[0].length - 2 && Math.round( mondrian.hero.y ) == mondrian.map.length - 2 ){
-			// 	loadLevel(1, mondrian.map[0].length - 3, mondrian.map.length - 2);
-			// }
-			// else if( currentLevel == 1 && Math.round( mondrian.hero.x ) == mondrian.map[0].length - 2 && Math.round( mondrian.hero.y ) == mondrian.map.length - 2 ){
-			// 	loadLevel(0, mondrian.map[0].length - 3, mondrian.map.length - 2);
-			// }
-
 			// Render the canvas
 			degas.render();
 		}
@@ -255,8 +249,8 @@
 			if( level == 0 ){
 				// Creating the tilemap world
 				mondrian = new Mondrian( 32, 18, 20, 20 );
-				mondrian.makeWall( 4, 1, 5, true );
-				mondrian.makeWall( 1, 7, 5 );
+				mondrian.addWall( 4, 1, 5, true );
+				mondrian.addWall( 1, 7, 5 );
 
 				if( heroX != undefined && heroY != undefined ){
 					mondrian.setHeroStart( heroX, heroY );
@@ -265,10 +259,10 @@
 					mondrian.setHeroStart( 1, 1 );
 				}
 
-				mondrian.addEnemy( 5, 5, 0.025 );
-				mondrian.addEnemy( 3, 5, 0.025 );
-				mondrian.addEnemy( 3, 2, 0.025 );
-				mondrian.addEnemy( 1, 8, 0.025 );
+				mondrian.addEnemy( 5, 5, 0.025, 25 );
+				mondrian.addEnemy( 3, 5, 0.025, 25 );
+				mondrian.addEnemy( 3, 2, 0.025, 25 );
+				mondrian.addEnemy( 1, 8, 0.025, 25 );
 
 				mondrian.addItem( 15, 1, 'blue thing' );
 				mondrian.addItem( 10, 7, 'blue thing' );
@@ -278,8 +272,8 @@
 			else if( level == 1 ){
 				// Creating the tilemap world
 				mondrian = new Mondrian( 32, 18, 20, 20 );
-				mondrian.makeWall( 4, 3, 5 );
-				mondrian.makeWall( 3, 5, 4, true );
+				mondrian.addWall( 4, 3, 5 );
+				mondrian.addWall( 3, 5, 4, true );
 				
 				if( heroX != undefined && heroY != undefined ){
 					mondrian.setHeroStart( heroX, heroY );
@@ -288,7 +282,7 @@
 					mondrian.setHeroStart( 1, 1 );
 				}
 
-				mondrian.addEnemy( 5, 5, 0.025 );
+				mondrian.addEnemy( 5, 5, 0.025, 25 );
 
 				mondrian.addItem( 15, 1, 'blue thing' );
 				mondrian.addItem( 10, 7, 'blue thing' );
