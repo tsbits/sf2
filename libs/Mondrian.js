@@ -11,6 +11,7 @@ var Mondrian = function( mw, mh, tw, th, map ){
 	this.gameEvents = {
 	  collisions: new signals.Signal(),
 	  item: new signals.Signal(),
+	  itemUsed: new signals.Signal(),
 	  door: new signals.Signal(),
 	  heroHitted: new signals.Signal(),
 	  heroDead: new signals.Signal()
@@ -86,7 +87,13 @@ Mondrian.prototype.onCollision = function(ctx, collidedItem){
 	var self = ctx;
 
 	if( collidedItem.type == 'door' ){
-		self.gameEvents.door.dispatch(collidedItem);
+		if( !collidedItem.secured ){
+			self.gameEvents.door.dispatch(collidedItem, self.hero);
+		}
+		else if( collidedItem.secured && self.hero.bag.map(function(e) { return e.name; }).indexOf('key') > -1 ){
+			self.useItem( self.hero.bag.map(function(e) { return e.name; }).indexOf('key') );
+			self.gameEvents.door.dispatch(collidedItem, self.hero);
+		}
 	}
 	else if( collidedItem.type == 'enemy' ){
 		if( !self.hero.invicible ){
@@ -175,6 +182,10 @@ Mondrian.prototype.setHeroSize = function( w, h ){
 	this.hero.height = h;
 }
 
+Mondrian.prototype.setMap = function( map ){
+	this.map = map;
+}
+
 Mondrian.prototype.resetHeroPos = function(){
 	this.hero.x = this.hero.startX;
 	this.hero.y = this.hero.startY;
@@ -188,8 +199,8 @@ Mondrian.prototype.addItem = function( x, y, name ){
 	this.items.push( { x: x, y: y, name: name, type: 'item', id: this.items.length } );
 }
 
-Mondrian.prototype.addDoor = function( x, y, targetLevel ){
-	this.doors.push( { x: x, y: y, targetLevel: targetLevel, type: 'door' } );
+Mondrian.prototype.addDoor = function( x, y, targetLevel, secured ){
+	this.doors.push( { x: x, y: y, targetLevel: targetLevel, type: 'door', secured: secured||false } );
 }
 
 Mondrian.prototype.addWall = function( x, y, length, vertical ){
@@ -205,8 +216,13 @@ Mondrian.prototype.addWall = function( x, y, length, vertical ){
 	}
 }
 
+Mondrian.prototype.useItem = function( itemIndex ){
+	this.hero.bag.splice(itemIndex, 1);
+}
+
 Mondrian.prototype.pickUpItem = function( itemIndex ){
 	this.hero.bag.push( this.items.splice( itemIndex, 1 )[0] );
+	this.gameEvents.itemUsed.dispatch(itemIndex);
 }
 
 Mondrian.prototype.isTileWalkable = function( x, y ){
