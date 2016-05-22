@@ -1,8 +1,9 @@
-var Mondrian = function( mw, mh, tw, th, map ){
+var Mondrian = function( mw, mh, tw, th, gravity ){
 	this.mapWidth = mw || 10;
 	this.mapHeight = mh || 10;
 	this.tileWidth = tw || 25;
 	this.tileHeight = th || 25;
+	this.gravity = gravity || false;
 	this.map = map || [];
 	this.hero = { x: 10, y: 5, speed: 0.2, startX : 1, startY: 1, invicible: false, bag: [], hp: 100, maxHp: 100, respiteDuration: 500 };
 	this.enemies = [];
